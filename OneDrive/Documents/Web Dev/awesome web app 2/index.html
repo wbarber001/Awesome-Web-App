@@ -1,0 +1,184 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <title>Awesome Character Builder</title>
+    <link rel="stylesheet" type="text/css" href="css/main.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Anton&family=Goldman:wght@400;700&family=Roboto:ital,wght@0,100..900;1,100..900&family=Sora:wght@100..800&display=swap" rel="stylesheet">
+  </head>
+  <body>
+    <!--Sticky Top Area-->
+    <div id="sticky_top">
+      <header><h1>Awesome Character Builder</h1></header>
+
+      <!--Budget Section-->
+      <div class="head_style"><h2>Budget</h2></div>
+
+      <!--Budget Description changes to current budget tracker-->
+      <div class="text_box"><p id="interface_text">Select your narrator assigned budget.</p></div>
+    </div>
+    
+    <div class="container">
+      <!--Budget Buttons, hides after confirm-->
+      <div id="budget_buttons" class="interface">
+        <div class="text_box">
+          <p>You selected a budget of:&nbsp;<span id="chosen_budget"></span>&nbsp;points.</p>
+          <p>Press confirm to continue.</p>
+        </div>
+        <div class="action_buttons">
+          <button class="confirm_button">Confirm</button>
+          <button class="cancel_button">Cancel</button>
+        </div>
+      </div>
+
+      <!--Budget Table, hides after confirm-->
+      <div id="budget_table" class="table">
+        <div class="col">
+          <div><h3>Hero Level</h3></div>
+          <div><p class="cell">D</p></div>
+          <div><p class="cell">C</p></div>
+          <div><p class="cell">B</p></div>
+          <div><p class="cell">A</p></div>
+          <div><p class="cell">S</p></div>
+        </div>
+        <div class="col">
+          <div><h3>Description</h3></div>
+          <div><p>Callow Hero, Freshman</p></div>
+          <div><p>Adept Hero, Sophomore</p></div>
+          <div><p>Expert Hero, Seasoned</p></div>
+          <div><p>Renowned Hero, Veteran</p></div>
+          <div><p>Epic Hero, Legend</p></div>
+        </div>
+        <div class="col">
+          <div><h3>Budget</h3></div>
+          <div class="cell budgetOption"><p>10</p></div>
+          <div class="cell budgetOption"><p>20</p></div>
+          <div class="cell budgetOption"><p>30</p></div>
+          <div class="cell budgetOption"><p>40</p></div>
+          <div class="cell budgetOption"><p>50</p></div>
+        </div>
+      </div>
+      
+      <!--Stats Section, hidden until attributes are chosen-->
+      <div id="stats">
+        <div class="head_style"><h2>Stats</h2></div>
+        <div id="stat_wrap">
+          <div id="defense">
+            <ul class="row">
+              <li><p class="stat_box">REF <span id="ref_score"></span></p></li>
+              <li><p class="stat_box">SPR <span id="spr_score"></span></p></li>
+              <li><p class="stat_box">WITS <span id="wits_score"></span></p></li>
+            </ul>
+          </div>
+          <div id="action">
+            <ul class="row">
+              <li><p class="stat_box">ACTION <span id="action_score"></span></p></li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <!--Attributes Section, hidden until budget is chosen-->
+      <div id="attributes" class="head_style"><h2>Attributes</h2></div>
+
+      <!--Attribute Scores, hidden until attributes are confirmed-->
+      <div id="attribute_scores">
+        <ul class="row">
+          <li class="score"><p>INT: <span id="chosen_intelligence"></span></p></li>
+          <li class="score"><p>WILL: <span id="chosen_will"></span></p></li>
+          <li class="score"><p>PHY: <span id="chosen_physical"></span></p></li>
+        </ul>
+      </div>
+      
+      <!--Attribute Buttons, hidden until attributes are chosen-->
+      <div id="attribute_buttons" class="interface">
+        <div class="text_box">
+          <p>Here are your attribute scores:</p>
+          <ul id="chosen_scores">
+            <li class="score"><p id="int_pick"></p></li>
+            <li class="score"><p id="will_pick"></p></li>
+            <li class="score"><p id="phy_pick"></p></li>
+          </ul>
+        </div>
+        <div class="action_buttons">
+          <button class="confirm_button">Confirm</button>
+          <button class="cancel_button">Cancel</button>
+        </div>
+      </div>
+      
+      <!--Attribute Description-->
+      <div id="attribute_description" class="text_box">
+        <p>Every character has three attributes; Intelligence, Will and Physical.</p>
+      </div>
+      
+      <div id="attribute_picks">
+        <div id="attribute_picks_text" class="text_box">
+          <p>Attributes are scored from 1 - 3 with 3 being the highest. Pick your attribute scores.<br>Remember, no two attributes can have the same score.</p>
+        </div>
+        <p id="more_info">More info</p>
+        <div id="attribute_picks_table">
+          <div class="col">
+            <div><h3>INT</h3></div>
+            <select id="int_select" class="attribute_select">
+              <option value="select">Select</option>
+            </select>
+          </div>
+          <div class="col">
+            <div><h3>WILL</h3></div>
+            <select id="will_select" class="attribute_select">
+              <option value="select">Select</option>
+            </select>
+          </div>
+          <div class="col">
+            <div><h3>PHY</h3></div>
+            <select id="phy_select" class="attribute_select">
+              <option value="select">Select</option>  
+            </select>
+          </div>
+        </div>
+      </div>
+      
+      <!--Attribute Descriptions-->
+      <div id="attribute_descriptions" class="table">
+        <div class="col">
+          <div><h3>Intelligence</h3></div>
+          <div><p>Represents brain power, memory and perception.</p></div>
+          <div><h3>Will</h3></div>
+          <div><p>Measures tenacity, mental and spiritual strength.</p></div>
+          <div><h3>Physical</h3></div>
+          <div><p>Represents strength, agility and endurance.</p></div>
+        </div>
+      </div>
+
+      <!--Health and Abilities Section, hidden until attributes are confirmed-->
+      <div id="health">
+        <div class="head_style"><h2>Health</h2></div>
+        <div id="health_bar">
+          <div class="health_box"><p>Good</p></div>
+          <div class="health_box"><p>Ok</p></div>
+          <div class="health_box"><p>Serious</p></div>
+          <div class="health_box"><p>Critical</p></div>
+          <div class="health_box"><p>KO'd</p></div>
+        </div>
+      </div>
+      
+      <div id="abilities">
+        <div class="head_style"><h2>Abilities</h2></div>
+        <div id="ability_wrapper"></div>
+      </div>
+      
+      <div id="tags">
+        <div class="head_style"><h2>Tags</h2></div>
+        <div id="tag_wrapper"></div>
+      </div>
+      
+    </div>
+    <footer></footer>
+    <script src="js/script.js"></script>
+    <script src="js/app.js"></script>
+  </body>
+</html>

@@ -1,0 +1,16 @@
+# Antigravity Workspace Rules
+
+## General Constraints
+- Provide brief, clear explanations for code changes.
+- Always prioritize modern, clean UI design principles.
+
+## Tech Stack & Styling
+- Core: HTML and Vanilla JavaScript.
+- Styling: Vanilla CSS. Avoid utility classes like Tailwind unless explicitly requested.
+- Place all global variables in `css/main.css`.
+
+## Git / Workflows
+- Keep commit messages concise and in the imperative mood.
+
+## Testing & Quality
+- Focus on making interactive elements responsive and accessible.
