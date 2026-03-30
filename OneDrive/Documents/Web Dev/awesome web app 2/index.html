@@ -20,6 +20,41 @@
 
       <!--Budget Description changes to current budget tracker-->
       <div class="text_box"><p id="interface_text">Select your narrator assigned budget.</p></div>
+      <!--Ability Menu-->
+      <nav id="ability_menu_nav">
+        <div class="head_style"><h2>Ability Menu</h2></div>
+        <div id="ability_menu_description" class="text_box">
+          <p>Select an ability from the menu below to bring up its ability card. <br>Click the cost of the grade you want to add the ability to your cart. <br>When an ability card lists "Tags" you can click one to open its tag card.<br>When you add an ability to your cart, you can add tags to it by clicking the tag card's add button.<br><br>Click the remove button on the tag card to remove it from the ability in your cart. <br>To remove an ability from your cart, click its remove button.<br><br>Once you have depleted your budget, click the confirm button to continue.<br><br>Click "Show less" to hide these instructions.</p>
+        </div>
+        <p id="show_less">Show less</p>
+        <ul id="ability_menu"class="row"></ul>
+      </nav>
+      <!--Ability Cart-->
+      <div id="ability_cart">
+        <div class="head_style"><h2>Ability Cart</h2></div>
+        <div id="ability_cart_text" class="text_box">
+          <p>You selected the following abilities:</p>
+        </div>
+        <div id="ability_cart_list" class="row"></div>
+        <div id="ability_cart_buttons" class="interface">
+          <div class="text_box">
+            <p>Total cost is&nbsp;<span id="ability_cart_cost"></span>&nbsp;points.<br>Press confirm to complete purchase.</p>
+          </div>
+          <div class="action_buttons">
+            <button class="confirm_button">Confirm</button>
+          </div>
+        </div>
+        <div id="slim_cart">
+          <p><span id="item_amount">0</span>&nbsp;items in cart for&nbsp;<span id="total_cost"></span>&nbsp;points</p>
+        </div>
+        <!--Collapse Cart Button-->
+        <p id="collapse_cart">Collapse cart</p>
+      </div>
+      <!--Message-->
+      <div id="message">
+        <div class="text_box"><p id="message_text">You don't have enough points to add that to your cart</p></div>
+        <div id="close_message" class="close"><p>Close</p></div>
+      </div>
     </div>
     
     <div class="container">
@@ -117,7 +152,7 @@
       
       <div id="attribute_picks">
         <div id="attribute_picks_text" class="text_box">
-          <p>Attributes are scored from 1 - 3 with 3 being the highest. Pick your attribute scores.<br>Remember, no two attributes can have the same score.</p>
+          <p>Attributes are scored from 1 - 3 with 3 being your best attribute and 1 being okay.<br>Pick your attribute scores.<br>Before you do, know that no two attributes can have the same score.</p>
         </div>
         <p id="more_info">More info</p>
         <div id="attribute_picks_table">
@@ -169,11 +204,6 @@
       <div id="abilities">
         <div class="head_style"><h2>Abilities</h2></div>
         <div id="ability_wrapper"></div>
-      </div>
-      
-      <div id="tags">
-        <div class="head_style"><h2>Tags</h2></div>
-        <div id="tag_wrapper"></div>
       </div>
       
     </div>

@@ -77,43 +77,43 @@ function phase_tracker() {
         attributes.style.display = "flex";
         attribute_scores.style.display = "flex";
         health.style.display = "flex";
+        ability_menu_nav.style.display = "flex";
         abilities.style.display = "flex";
-        tags.style.display = "flex";
         //Slow attributes, attribute_scores, and health fade in
         stats.style.opacity = "0";
         attributes.style.opacity = "0";
         attribute_scores.style.opacity = "0";
         health.style.opacity = "0";
+        ability_menu_nav.style.opacity = "0";
         abilities.style.opacity = "0";
-        tags.style.opacity = "0";
         attributes.style.transition = "opacity 0.5s ease-in-out";
         attribute_scores.style.transition = "opacity 0.5s ease-in-out";
         health.style.transition = "opacity 0.5s ease-in-out";
+        ability_menu_nav.style.transition = "opacity 0.5s ease-in-out";
         abilities.style.transition = "opacity 0.5s ease-in-out";
-        tags.style.transition = "opacity 0.5s ease-in-out";
         setTimeout(() => {
             stats.style.opacity = "1";
             attributes.style.opacity = "1";
             attribute_scores.style.opacity = "1";
             health.style.opacity = "1";
+            ability_menu_nav.style.opacity = "1";
             abilities.style.opacity = "1";
-            tags.style.opacity = "1";
         }, 10);
         //Hide attribute_buttons
         attribute_buttons.style.opacity = "0";
         setTimeout(() => {
             attribute_buttons.style.display = "none";
         }, 500);
-        //Get abilities
+        //Generate menu,ability cards and tag cards
+        makeAbilityMenu();
         makeAbilityCards();
-        makeTagCards();
     }
     //End of ability phase
     if (ability_phase == false) {
         //Hide attributes, attribute_scores, and health
         health.style.display = "none";
+        ability_menu_nav.style.display = "none";
         abilities.style.display = "none";
-        tags.style.display = "none";
     }
     //Disable cancel buttons during attribute phase until scoreCount >= 3
     document.querySelectorAll(".cancel_button").forEach(function (button) {
@@ -123,22 +123,10 @@ function phase_tracker() {
             button.disabled = false;
         }
     });
-    //Log current phase
-    if (budget_phase == true) {
-        console.log("Current Phase: Budget");
-    }
-    if (attribute_phase == true) {
-        console.log("Current Phase: Attributes");
-    }
-    if (ability_phase == true) {
-        console.log("Current Phase: Abilities");
-    }
 }
 
-//Handle select elements function
+//This function sets the options for the select elements
 function handleSelectElements(selectElements, scoreOptions) {
-    //Log function call
-    console.log("Updating select elements");
     //Loop through select elements
     selectElements.forEach(function (select) {
         //Loop through score options
@@ -199,7 +187,7 @@ function resetChoices() {
     }
 }
 
-//Get stats function
+//This function gets the character's defense and action stats
 function getStats() {
     //If ability_phase is true and scoreCount is 3 do the following
     if (ability_phase == true && scoreCount == 3) {
@@ -208,8 +196,66 @@ function getStats() {
         sprScore.textContent = Math.ceil((attribute_values[1].value) / 2);
         refScore.textContent = Math.ceil((attribute_values[2].value) / 2);
         //Get stats for action
-        action_score.textContent = attribute_values[0].value + attribute_values[2].value;
+        actionScore.textContent = attribute_values[0].value + attribute_values[2].value;
     }
+    //If ability_phase is true and ability_cart_list has children
+    if (ability_phase == true && document.getElementById("ability_cart_list").children.length > 0) {
+        const defenseUpgrades = [];
+        const actionUpgrades = [];
+        //Loop through abilityCart and look up upgrades from abilityList
+        abilityCart.forEach(function (cartAbility) {
+            //Find the matching ability in abilityList
+            const listAbility = abilityList.find(a => a.name === cartAbility.name);
+            if (!listAbility || listAbility.upgrades.length === 0) return;
+            //Get the grade key (d, c, b, a, s) from the cart ability's grade
+            const gradeKey = cartAbility.grade.toLowerCase();
+            //Loop through the upgrades
+            listAbility.upgrades.forEach(function (upgrade) {
+                //Get the upgrade value for this grade
+                const upgradeValue = upgrade[gradeKey] || 0;
+                if (upgrade.type === "Reflex" || upgrade.type === "Spirit" || upgrade.type === "Wits") {
+                    defenseUpgrades.push({ type: upgrade.type, value: upgradeValue });
+                }
+                if (upgrade.type === "Action") {
+                    actionUpgrades.push({ type: upgrade.type, value: upgradeValue });
+                }
+            });
+        });
+        //Add defense upgrades to defense stats
+        defenseUpgrades.forEach(function (upgrade) {
+            if (upgrade.type === "Reflex") {
+                refScore.textContent = parseInt(refScore.textContent) + upgrade.value;
+            }
+            if (upgrade.type === "Spirit") {
+                sprScore.textContent = parseInt(sprScore.textContent) + upgrade.value;
+            }
+            if (upgrade.type === "Wits") {
+                witsScore.textContent = parseInt(witsScore.textContent) + upgrade.value;
+            }
+        });
+        //Add action upgrades to action stats
+        actionUpgrades.forEach(function (upgrade) {
+            actionScore.textContent = parseInt(actionScore.textContent) + upgrade.value;
+        });
+    }
+}
+
+
+
+//This function generates a menu to navigate Abilities and Tags
+function makeAbilityMenu() {
+    const abilityMenu = document.getElementById("ability_menu");
+    //Clear existing menu
+    abilityMenu.innerHTML = "";
+    //Iterate through abilityList and create menu items
+    abilityList.forEach(function (ability) {
+        //Create menu item
+        let abilityItem = document.createElement("li");
+        abilityItem.className = "menuCell";
+        abilityItem.innerHTML = ability.name.charAt(0).toUpperCase() + ability.name.slice(1).toLowerCase();
+        //Append menu items to menu
+        abilityMenu.appendChild(abilityItem);
+    });
 }
 
 //This function generates the ability cards
@@ -226,7 +272,7 @@ function makeAbilityCards() {
         abilityName.textContent = ability.name;
         //Create ability description
         let abilityDescription = document.createElement("p");
-        abilityDescription.textContent = ability.description;
+        abilityDescription.innerHTML = ability.description;
         //Append ability name to ability card
         abilityCard.appendChild(abilityName);
         //If an ability is a power type **
@@ -240,7 +286,7 @@ function makeAbilityCards() {
         //Append ability description to ability card
         abilityCard.appendChild(abilityDescription);
         //If an ability has a damage array ***
-        if (ability.damage.length > 0) {
+        if (ability.damage && ability.damage.length > 0) {
             //Create damage table
             let damageTable = document.createElement("div");
             damageTable.className = "card_table";
@@ -282,35 +328,25 @@ function makeAbilityCards() {
             //Create upgrade table
             let upgradeTable = document.createElement("div");
             upgradeTable.className = "card_table";
-            //Create ability upgrades row
-            let column3 = document.createElement("div");
-            column3.className = "card_row";
-            //Create upgrade header cells
-            let cell0 = document.createElement("div");
-            cell0.className = "card_cell";
-            cell0.textContent = "Upgrade: ";
-            //Create ability upgrades cells
-            let cell1 = document.createElement("div");
-            cell1.className = "card_cell";
-            cell1.textContent = ability.upgrades[0];
-            //Create ability pool cells
-            let cell2 = document.createElement("div");
-            cell2.className = "card_cell";
-            cell2.textContent = ability.upgrades[1];
-            //Create ability cost cells
-            let cell3 = document.createElement("div");
-            cell3.className = "card_cell";
-            cell3.textContent = ability.upgrades[2];
-            //Append ability upgrades cells to ability upgrades column
-            column3.appendChild(cell0);
-            column3.appendChild(cell1);
-            column3.appendChild(cell2);
-            column3.appendChild(cell3);
-            //Append ability upgrades column to ability grade table
-            upgradeTable.appendChild(column3);
+            //Create header row
+            let headerRow = document.createElement("div");
+            headerRow.className = "card_row";
+            let headerCell = document.createElement("div");
+            headerCell.className = "card_cell";
+            headerCell.textContent = "Upgrades: ";
+            headerRow.appendChild(headerCell);
+            //Loop through each upgrade object and add its type as a cell
+            ability.upgrades.forEach(function (upgrade) {
+                let upgradeCell = document.createElement("div");
+                upgradeCell.className = "card_cell";
+                upgradeCell.textContent = upgrade.type;
+                headerRow.appendChild(upgradeCell);
+            });
+            upgradeTable.appendChild(headerRow);
             //Append upgrade table to ability card
             abilityCard.appendChild(upgradeTable);
         }
+        //If an ability.table is not empty ******
         if (ability.table.length > 0) {
             //Create table div
             let tableDiv = document.createElement("div");
@@ -397,11 +433,6 @@ function makeAbilityCards() {
         });
         //Append ability grade table to ability card
         abilityCard.appendChild(tierTable);
-
-        //Append ability grade table to ability card
-        abilityCard.appendChild(tierTable);
-        //If ability.table is not empty *******
-
         //If an ability.tags is not empty ********
         if (ability.tags.length >= 1) {
             //Create tags table
@@ -433,87 +464,301 @@ function makeAbilityCards() {
             //Append tags table to ability card
             abilityCard.appendChild(tagsTable);
         }
-
         //Append ability card to ability wrapper
         abilityWrapper.appendChild(abilityCard);
     });
 }
 
-function makeTagCards() {
-    tagWrapper.innerHTML = "";
+//This function generates the tag cards
+function makeTagCards(tagName, targetTable) {
+    //Get the ability card
+    let abilityCard = targetTable.closest('.ability_card');
+    //Get the existing tag card
+    let existingTag = abilityCard.querySelector('.tag_card');
+    //If the existing tag card is not empty
+    if (existingTag) {
+        let existingTitle = existingTag.querySelector("h3").textContent;
+        existingTag.remove();
+        if (existingTitle.toUpperCase() === tagName) return;
+    }
+    //Loop through tagList
     tagList.forEach(function (tag) {
-        //Create tag card *
-        let tagCard = document.createElement("div");
-        tagCard.className = "tag_card";
-        //Create tag header
-        let tagHeader = document.createElement("h3");
-        tagHeader.className = "tag_header";
-        tagHeader.textContent = tag.name;
-        //Append tag header to tag card
-        tagCard.appendChild(tagHeader);
-        //Create tag row **
-        let tagRow = document.createElement("div");
-        tagRow.className = "card_row";
-        //Create Add to cell ***
-        let tagCell1 = document.createElement("div");
-        tagCell1.className = "card_cell";
-        tagCell1.textContent = "Add to: ";
-        //Create tag description
-        let tagDescription = document.createElement("p");
-        tagDescription.className = "tag_description";
-        tagDescription.textContent = tag.description;
-        //Create tag table ****
-        let tagTable = document.createElement("div");
-        tagTable.className = "card_table";
-        //Append Add to cell to tag row
-        tagRow.appendChild(tagCell1);
-        //Append tag row to tag table
-        tagTable.appendChild(tagRow);
-        //Iterate through tagList.addTo
-        tag.addTo.forEach(function (addTo) {
-            //Create addTo row *****
-            let tagCell2 = document.createElement("div");
-            tagCell2.className = "card_cell";
-            tagCell2.textContent = addTo;
-            //Append addTo cells to addTo row
-            tagRow.appendChild(tagCell2);
-            tagTable.appendChild(tagRow);
-        });
-        //Append addTo table to tag card
-        tagCard.appendChild(tagTable);
-        //Append tag description to tag card
-        tagCard.appendChild(tagDescription);
-        //If the tag has senseTypes, build a separate table and append beneath description
-        if (tag.senseTypes && tag.senseTypes.length >= 1) {
-            //Create senseTypes table
-            let senseTypesTable = document.createElement("div");
-            senseTypesTable.className = "card_table";
-            //Create senseTypes row
-            let senseTypesRow = document.createElement("div");
-            senseTypesRow.className = "card_row";
-            //Create senseTypes label cell
-            let senseTypesCell = document.createElement("div");
-            senseTypesCell.className = "card_cell";
-            senseTypesCell.textContent = "Sense Types: ";
-            //Append label cell to senseTypes row
-            senseTypesRow.appendChild(senseTypesCell);
-            tag.senseTypes.forEach(function (senseType) {
-                //Create a cell for each sense type
-                let senseTypeCell = document.createElement("div");
-                senseTypeCell.className = "card_cell";
-                senseTypeCell.textContent = senseType.name;
-                senseTypesRow.appendChild(senseTypeCell);
+        //If the tag name is equal to the tag name
+        if (tag.name.toUpperCase() === tagName) {
+            //Create tag card *
+            let tagCard = document.createElement("div");
+            tagCard.className = "tag_card";
+            //Create tag header
+            let tagHeader = document.createElement("h3");
+            tagHeader.className = "tag_header";
+            tagHeader.textContent = tag.name;
+            //Append tag header to tag card
+            tagCard.appendChild(tagHeader);
+            //Create tag row **
+            let tagRow = document.createElement("div");
+            tagRow.className = "card_row";
+            //Create Add to cell ***
+            let tagCell1 = document.createElement("div");
+            tagCell1.className = "card_cell";
+            tagCell1.textContent = "Add to: ";
+            //Create tag description
+            let tagDescription = document.createElement("p");
+            tagDescription.className = "tag_description";
+            tagDescription.innerHTML = tag.description;
+            //Create button row
+            let tagButtonRow = document.createElement("div");
+            tagButtonRow.className = "card_row";
+            //Create tag card Add button
+            let tagButton = document.createElement("button");
+            tagButton.className = "add_button";
+            tagButton.textContent = "Add";
+            //Add event listener to tag card Add button
+            tagButton.addEventListener("click", function (e) {
+                let clickedTagCard = e.target.closest(".tag_card");
+                let parentAbilityCard = e.target.closest(".ability_card");
+                //Get the tag name and ability name
+                let tagName = clickedTagCard.querySelector(".tag_header").textContent;
+                let abilityName = parentAbilityCard.querySelector("h3").textContent;
+                //Loop through abilityCart
+                abilityCart.forEach(function (ability) {
+                    //If the ability name is equal to the ability name
+                    if (ability.name === abilityName) {
+                        //If the tag is already in the ability's tags array, skip it
+                        if (ability.tags.includes(tagName)) return;
+                        //Check if doubling the cost would exceed the budget
+                        let oldCost = parseInt(ability.cost);
+                        let newCost = oldCost * 2;
+                        if (total_cost - oldCost + newCost > current_budget) {
+                            //Show the message panel
+                            message.style.display = "flex";
+                            return;
+                        }
+                        //Add the tag to the ability item in abilityCart
+                        ability.tags.push(tagName);
+                        //Double the ability's cost
+                        ability.cost = newCost;
+                        //Update total_cost
+                        total_cost -= oldCost;
+                        total_cost += newCost;
+                        //Update the global cart cost display
+                        document.getElementById("ability_cart_cost").textContent = total_cost;
+                        //Find the matching item_wrapper by ability name, then target its .tags div
+                        let cartItems = document.querySelectorAll(".item_wrapper");
+                        //Loop through cartItems
+                        cartItems.forEach(function (item) {
+                            //Get the ability cart name
+                            let nameEl = item.querySelector(".ability_cart_name");
+                            //If the ability cart name is equal to the ability name
+                            if (nameEl && nameEl.textContent === abilityName) {
+                                //Update the cost label in the cart row
+                                let costEl = item.querySelector(".ability_cart_cost");
+                                if (costEl) costEl.textContent = "Cost: " + newCost;
+                                //Get the tags div
+                                let tagsDiv = item.querySelector(".tags");
+                                //Create a tag
+                                let tag = document.createElement("div");
+                                tag.className = "tag";
+                                tag.textContent = tagName.charAt(0).toUpperCase() + tagName.slice(1).toLowerCase();
+                                tagsDiv.appendChild(tag);
+                            }
+                        });
+                    }
+                });
+                console.log("Add:", tagName, "to:", abilityName);
             });
-            //Append the completed row to the senseTypes table
-            senseTypesTable.appendChild(senseTypesRow);
-            //Append senseTypes table beneath the description
-            tagCard.appendChild(senseTypesTable);
+            //Create Remove button
+            let tagButton2 = document.createElement("button");
+            tagButton2.className = "remove_button";
+            tagButton2.textContent = "Remove";
+            //Add event listener to tag card Remove button
+            tagButton2.addEventListener("click", function (e) {
+                let clickedTagCard = e.target.closest(".tag_card");
+                let parentAbilityCard = e.target.closest(".ability_card");
+                //Get the tag name and ability name
+                let tagName = clickedTagCard.querySelector(".tag_header").textContent;
+                let abilityName = parentAbilityCard.querySelector("h3").textContent;
+                //Loop through abilityCart
+                abilityCart.forEach(function (ability) {
+                    //If the ability name is equal to the ability name
+                    if (ability.name === abilityName) {
+                        //If the tag is not in the ability's tags array, skip it
+                        if (!ability.tags.includes(tagName)) return;
+                        //Remove the tag from the ability item in abilityCart
+                        ability.tags = ability.tags.filter(tag => tag !== tagName);
+                        //Halve the ability's cost
+                        let oldCost = parseInt(ability.cost);
+                        let newCost = Math.floor(oldCost / 2);
+                        ability.cost = newCost;
+                        //Update total_cost by subtracting only the difference
+                        total_cost = total_cost - oldCost + newCost;
+                        //Update the global cart cost display
+                        document.getElementById("ability_cart_cost").textContent = total_cost;
+                        //Find the matching item_wrapper by ability name, then target its .tags div
+                        let cartItems = document.querySelectorAll(".item_wrapper");
+                        //Loop through cartItems
+                        cartItems.forEach(function (item) {
+                            //Get the ability cart name
+                            let nameEl = item.querySelector(".ability_cart_name");
+                            //If the ability cart name is equal to the ability name
+                            if (nameEl && nameEl.textContent === abilityName) {
+                                //Update the cost label in the cart row
+                                let costEl = item.querySelector(".ability_cart_cost");
+                                if (costEl) costEl.textContent = "Cost: " + ability.cost;
+                                //Get the tags div
+                                let tagsDiv = item.querySelector(".tags");
+                                //Remove the specific tag that matches tagName
+                                tagsDiv.querySelectorAll(".tag").forEach(function (tagEl) {
+                                    if (tagEl.textContent.toUpperCase() === tagName.toUpperCase()) {
+                                        tagEl.remove();
+                                    }
+                                });
+                            }
+                        });
+                    }
+                });
+                console.log("Remove:", tagName, "from:", abilityName);
+            });
+            //Create tag table ****
+            let tagTable = document.createElement("div");
+            tagTable.className = "card_table";
+            //Append Add to cell to tag row
+            tagRow.appendChild(tagCell1);
+            //Append tag row to tag table
+            tagTable.appendChild(tagRow);
+            //Iterate through tagList.addTo
+            tag.addTo.forEach(function (addTo) {
+                //Create addTo row *****
+                let tagCell2 = document.createElement("div");
+                tagCell2.className = "card_cell";
+                tagCell2.textContent = addTo;
+                //Append addTo cells to addTo row
+                tagRow.appendChild(tagCell2);
+                tagTable.appendChild(tagRow);
+            });
+            //Append addTo table to tag card
+            tagCard.appendChild(tagTable);
+            //Append tag description to tag card
+            tagCard.appendChild(tagDescription);
+            //If the tag has senseTypes, build a separate table and append beneath description
+            if (tag.senseTypes && tag.senseTypes.length >= 1) {
+                //Create senseTypes table
+                let senseTypesTable = document.createElement("div");
+                senseTypesTable.className = "card_table";
+                //Create senseTypes row
+                let senseTypesRow = document.createElement("div");
+                senseTypesRow.className = "card_row";
+                //Create senseTypes label cell
+                let senseTypesCell = document.createElement("div");
+                senseTypesCell.className = "card_cell";
+                senseTypesCell.textContent = "Sense Types: ";
+                //Append label cell to senseTypes row
+                senseTypesRow.appendChild(senseTypesCell);
+                tag.senseTypes.forEach(function (senseType) {
+                    //Create a cell for each sense type
+                    let senseTypeCell = document.createElement("div");
+                    senseTypeCell.className = "card_cell";
+                    senseTypeCell.textContent = senseType.name;
+                    senseTypesRow.appendChild(senseTypeCell);
+                });
+                //Append the completed row to the senseTypes table
+                senseTypesTable.appendChild(senseTypesRow);
+                //Append senseTypes table beneath the description
+                tagCard.appendChild(senseTypesTable);
+            }
+            //Append add button to button row
+            tagButtonRow.appendChild(tagButton);
+            tagButtonRow.appendChild(tagButton2);
+            //Append button row to tag card
+            tagCard.appendChild(tagButtonRow);
+            //Append tag card beneath target table
+            targetTable.parentNode.insertBefore(tagCard, targetTable.nextSibling);
+
+            // Scroll the tag card into view
+            const stickyTopHeight = document.getElementById("sticky_top").offsetHeight;
+            const topPosition = tagCard.getBoundingClientRect().top + window.scrollY - stickyTopHeight;
+            window.scrollTo({ top: topPosition, behavior: "smooth" });
         }
-        //Append tag card to tag wrapper
-        tagWrapper.appendChild(tagCard);
     });
 }
 
+//Function to toggle the slim cart
+function toggleSlimCart() {
+    const cartText = document.getElementById("ability_cart_text");
+    const collapseBtn = document.getElementById("collapse_cart");
+    const DURATION = 500;
+
+    if (slim_cart.style.display === "none") {
+        // COLLAPSE: fade out list/buttons/text, then fade in slim cart
+        //Update the item amount and total cost
+        document.getElementById("item_amount").textContent = abilityCart.length;
+        document.getElementById("total_cost").textContent = total_cost;
+        collapseBtn.textContent = "Expand cart";
+
+        //Fade out the list, buttons and text box
+        ability_cart_list.style.transition = "opacity " + DURATION + "ms ease-in-out";
+        ability_cart_buttons.style.transition = "opacity " + DURATION + "ms ease-in-out";
+        cartText.style.transition = "opacity " + DURATION + "ms ease-in-out";
+        ability_cart_list.style.opacity = "0";
+        ability_cart_buttons.style.opacity = "0";
+        cartText.style.opacity = "0";
+
+        setTimeout(() => {
+            ability_cart_list.style.display = "none";
+            ability_cart_buttons.style.display = "none";
+            cartText.style.display = "none";
+
+            //Fade in slim cart
+            slim_cart.style.transition = "opacity " + DURATION + "ms ease-in-out";
+            slim_cart.style.opacity = "0";
+            slim_cart.style.display = "flex";
+            setTimeout(() => slim_cart.style.opacity = "1", 10);
+        }, DURATION);
+
+    } else {
+        // EXPAND: fade out slim cart, then fade in list/buttons/text
+        collapseBtn.textContent = "Collapse cart";
+
+        slim_cart.style.transition = "opacity " + DURATION + "ms ease-in-out";
+        slim_cart.style.opacity = "0";
+
+        setTimeout(() => {
+            slim_cart.style.display = "none";
+
+            //Fade in list, buttons and text box
+            ability_cart_list.style.transition = "opacity " + DURATION + "ms ease-in-out";
+            ability_cart_buttons.style.transition = "opacity " + DURATION + "ms ease-in-out";
+            cartText.style.transition = "opacity " + DURATION + "ms ease-in-out";
+            ability_cart_list.style.opacity = "0";
+            ability_cart_buttons.style.opacity = "0";
+            cartText.style.opacity = "0";
+            ability_cart_list.style.display = "flex";
+            ability_cart_buttons.style.display = "flex";
+            cartText.style.display = "";
+            setTimeout(() => {
+                ability_cart_list.style.opacity = "1";
+                ability_cart_buttons.style.opacity = "1";
+                cartText.style.opacity = "1";
+            }, 10);
+        }, DURATION);
+    }
+}
+
+//Ability constructor
+function Ability(name, grade, cost, tags) {
+    this.name = name;
+    this.grade = grade;
+    this.cost = cost;
+    this.tags = tags;
+}
+
+//Character constructor
+function Character(name, budget, attributes, stats, abilities) {
+    this.name = name;
+    this.budget = budget;
+    this.attributes = attributes;
+    this.stats = stats;
+    this.abilities = abilities;
+}
 /*VARIABLES */
 
 //Phase Trackers
@@ -521,7 +766,7 @@ let budget_phase = false;
 let attribute_phase = false;
 let ability_phase = false;
 
-//DOM Elements
+//Elements revealed during phases
 const budget_buttons = document.getElementById("budget_buttons");
 budget_buttons.style.display = "none";
 
@@ -557,13 +802,26 @@ health.style.display = "none";
 const abilities = document.getElementById("abilities");
 abilities.style.display = "none";
 
-const tags = document.getElementById("tags");
-tags.style.display = "none";
+const ability_menu_nav = document.getElementById("ability_menu_nav");
+ability_menu_nav.style.display = "none";
 
+const message = document.getElementById("message");
+message.style.display = "none";
+
+const ability_cart = document.getElementById("ability_cart");
+ability_cart.style.display = "none";
+
+const ability_cart_list = document.getElementById("ability_cart_list");
+
+const slim_cart = document.getElementById("slim_cart");
+slim_cart.style.display = "none";
+
+//Elements revealed after budget confirmation
 const chosen_budget = document.getElementById("chosen_budget");
 
 const interface_text = document.getElementById("interface_text");
 
+//Elements revealed after attribute confirmation
 const intScore = document.getElementById("chosen_intelligence");
 const willScore = document.getElementById("chosen_will");
 const phyScore = document.getElementById("chosen_physical");
@@ -572,11 +830,13 @@ const intPick = document.getElementById("int_pick");
 const willPick = document.getElementById("will_pick");
 const phyPick = document.getElementById("phy_pick");
 
+//Elements revealed after stats are calculated
 const refScore = document.getElementById("ref_score");
 const sprScore = document.getElementById("spr_score");
 const witsScore = document.getElementById("wits_score");
-const action_score = document.getElementById("action_score");
+const actionScore = document.getElementById("action_score");
 
+//Elements revealed after stats are calculated
 const abilityWrapper = document.getElementById("ability_wrapper");
 const tagWrapper = document.getElementById("tag_wrapper");
 
@@ -585,6 +845,9 @@ let current_budget = 0;
 
 //Score Count
 let scoreCount = 0;
+
+//Total cost of items currently in the ability cart
+let total_cost = 0;
 
 //Attribute Values
 //Array to store the attribute values
@@ -603,6 +866,9 @@ let attribute_values = [
     }
 ];
 
+//Ability Cart
+let abilityCart = [];
+
 //ATTRIBUTE SELECT
 
 //Get all elements with the class "attribute_select"    
@@ -616,17 +882,14 @@ attribute_select.forEach(function (select) {
             if (attribute_value.attribute === select.id) {
                 //Update the Attribute scores
                 if (select.id === "int_select") {
-                    console.log('select id is ', select.id, 'select value is ', select.value);
                     intScore.textContent = select.value;
                     intPick.textContent = "INT: " + select.value;
                 }
                 if (select.id === "will_select") {
-                    console.log('select id is ', select.id, 'select value is ', select.value);
                     willScore.textContent = select.value;
                     willPick.textContent = "WILL: " + select.value;
                 }
                 if (select.id === "phy_select") {
-                    console.log('select id is ', select.id, 'select value is ', select.value);
                     phyScore.textContent = select.value;
                     phyPick.textContent = "PHY: " + select.value;
                 }
@@ -681,6 +944,31 @@ confirm.forEach(function (button) {
             //Call getStats
             getStats();
         }
+        //If ability_phase is true and ability_cart_list is not empty do the following
+        if (ability_phase == true && ability_cart_list.children.length > 0) {
+            //Get the name
+            const name = "Enter Name";
+            //Get the attributes
+            const attributes = {
+                intelligence: intScore.textContent,
+                will: willScore.textContent,
+                physical: phyScore.textContent
+            }
+            //Get the stats (read after getStats() updates the DOM)
+            const stats = {
+                ref: refScore.textContent,
+                spr: sprScore.textContent,
+                wits: witsScore.textContent,
+                action: actionScore.textContent
+            }
+
+            //Get the ability cart
+            const characterAbilities = abilityCart;
+            //New Character
+            const newCharacter = new Character(name, current_budget, attributes, stats, characterAbilities);
+            //Log the new character
+            console.log(newCharacter);
+        }
     });
 });
 
@@ -718,24 +1006,216 @@ options.forEach(function (option) {
     });
 });
 
+//ATTRIBUTES MORE INFO BUTTON
+
 //Get the more info button
 const more_info = document.getElementById("more_info");
 //Add event listener to the more info button
 more_info.addEventListener('click', function () {
     //If the attribute descriptions are displayed
     if (attribute_descriptions.style.display === "flex") {
-        //Change the text to "More info"
-        more_info.textContent = "More info"
-        //Change the display of the attribute descriptions
-        attribute_descriptions.style.display = "none";
+        //Fade out
+        attribute_descriptions.style.opacity = "0";
+        attribute_descriptions.style.transition = "opacity 0.5s ease-in-out";
+        setTimeout(() => {
+            //Change the display of the attribute descriptions
+            attribute_descriptions.style.display = "none";
+            //Change the text to "More info"
+            more_info.textContent = "More info";
+        }, 500);
     }
     //If the attribute descriptions are not displayed
     else if (attribute_descriptions.style.display === "none") {
         //Change the text to "Show less"
-        more_info.textContent = "Show less"
-        //Change the display of the attribute descriptions
+        more_info.textContent = "Show less";
+        //Fade in
         attribute_descriptions.style.display = "flex";
+        attribute_descriptions.style.opacity = "0";
+        attribute_descriptions.style.transition = "opacity 0.5s ease-in-out";
+        setTimeout(() => attribute_descriptions.style.opacity = "1", 10);
     }
 });
 
+//ABILITY MENU MORE INFO BUTTON
 
+//Get the more info button
+const show_less = document.getElementById("show_less");
+//Add event listener to the more info button
+show_less.addEventListener('click', function () {
+    //If the attribute descriptions are displayed
+    if (ability_menu_description.style.display === "flex" || ability_menu_description.style.display === "") {
+        //Fade out
+        ability_menu_description.style.opacity = "0";
+        ability_menu_description.style.transition = "opacity 0.5s ease-in-out";
+        setTimeout(() => {
+            //Change the display of the attribute descriptions
+            ability_menu_description.style.display = "none";
+            //Change the text to "More info"
+            show_less.textContent = "Show more";
+        }, 500);
+    }
+    //If the attribute descriptions are not displayed
+    else if (ability_menu_description.style.display === "none") {
+        //Change the text to "Show less"
+        show_less.textContent = "Show less";
+        //Fade in
+        ability_menu_description.style.display = "flex";
+        ability_menu_description.style.opacity = "0";
+        ability_menu_description.style.transition = "opacity 0.5s ease-in-out";
+        setTimeout(() => ability_menu_description.style.opacity = "1", 10);
+    }
+});
+
+//ABILITY MENU BUTTONS
+
+//Add event listener to the ability menu container to handle dynamically created menu cells
+document.getElementById("ability_menu").addEventListener('click', function (e) {
+    if (e.target && e.target.classList.contains("menuCell")) {
+        let menuName = e.target.textContent.toUpperCase();
+        console.log("Scrolling to:", menuName);
+
+        // Find the ability card with the matching title
+        let cards = document.querySelectorAll(".ability_card");
+        cards.forEach(function (card) {
+            let title = card.querySelector("h3");
+            if (title && title.textContent.toUpperCase() === menuName) {
+                const stickyTopHeight = document.getElementById("sticky_top").offsetHeight;
+                const topPosition = card.getBoundingClientRect().top + window.scrollY - stickyTopHeight;
+                window.scrollTo({ top: topPosition, behavior: "smooth" });
+            }
+        });
+    }
+});
+
+//ABILITY CARD COST
+
+//Add an event listener to the ability wrapper
+document.getElementById("ability_wrapper").addEventListener('click', function (e) {
+    let col = e.target.closest(".col");
+    if (col) {
+        let cells = col.querySelectorAll(".card_cell");
+        // Tier table columns have exactly 3 cells: Grade, Pool, Cost
+        if (cells.length === 3) {
+            let abilityCard = col.closest(".ability_card");
+            let abilityName = abilityCard ? abilityCard.querySelector("h3").textContent : "";
+
+            let grade = cells[0].textContent;
+            let cost = cells[2].textContent;
+
+            // Check if the actual cost cell (the 3rd cell) was the one clicked
+            if (e.target === cells[2]) {
+                // Ensure we don't log the table header column itself
+                if (cost.toLowerCase() !== "cost") {
+                    //If total_cost is greater than current_budget
+                    if (total_cost + parseInt(cost) > current_budget) {
+                        //Display an error message
+                        message.style.display = "flex";
+                        return;
+                    }
+                    console.log("Ability:", abilityName, "Grade:", grade, "Cost:", cost);
+                    //Reveal the ability cart
+                    ability_cart.style.display = "flex";
+                    //Add the ability to the ability cart
+                    // ability_cart_list is declared globally above
+                    const item_wrapper = document.createElement("div");
+                    item_wrapper.classList.add("item_wrapper");
+                    const ability_cart_row = document.createElement("div");
+                    ability_cart_row.classList.add("row");
+                    const ability_cart_name = document.createElement("div");
+                    ability_cart_name.classList.add("ability_cart_name");
+                    ability_cart_name.textContent = abilityName;
+                    const ability_cart_grade = document.createElement("div");
+                    ability_cart_grade.classList.add("ability_cart_grade");
+                    ability_cart_grade.textContent = "Grade: " + grade;
+                    const ability_cart_cost = document.createElement("div");
+                    ability_cart_cost.classList.add("ability_cart_cost");
+                    ability_cart_cost.textContent = "Cost: " + cost;
+                    const remove = document.createElement("div");
+                    remove.textContent = "remove";
+                    remove.classList.add("remove");
+                    const tags = document.createElement("div");
+                    tags.classList.add("tags");
+                    ability_cart_row.appendChild(ability_cart_name);
+                    ability_cart_row.appendChild(ability_cart_grade);
+                    ability_cart_row.appendChild(ability_cart_cost);
+                    ability_cart_row.appendChild(remove);
+                    item_wrapper.appendChild(ability_cart_row);
+                    item_wrapper.appendChild(tags);
+                    ability_cart_list.appendChild(item_wrapper);
+                    //Add the ability to the ability cart array
+                    abilityCart.push(new Ability(abilityName, grade, cost, []));
+                    //Collect the cost of the ability as a number
+                    total_cost += parseInt(cost);
+                    //Update the ability cart text
+                    document.getElementById("ability_cart_cost").textContent = total_cost;
+                    console.log("Current Ability Cost: " + total_cost);
+                    //Apply ability upgrades to stats
+                    getStats();
+                }
+            }
+        }
+    }
+});
+
+//TAG BUTTONS
+
+//Add event listener to the ability wrapper that opens the tag cards
+document.getElementById("ability_wrapper").addEventListener('click', function (e) {
+    if (e.target && e.target.classList.contains("card_cell")) {
+        let tagName = e.target.textContent.toUpperCase();
+        let targetTable = e.target.closest(".card_table");
+        if (targetTable) {
+            makeTagCards(tagName, targetTable);
+        }
+    }
+});
+
+//REMOVE BUTTON
+
+//Add event listener to the ability cart list that removes the ability from the ability cart array
+document.getElementById("ability_cart_list").addEventListener('click', function (e) {
+    if (e.target && e.target.classList.contains("remove")) {
+        //Get the item wrapper
+        let item_wrapper = e.target.closest(".item_wrapper");
+        //Get the ability cart row
+        let ability_cart_row = item_wrapper.querySelector(".row");
+        //Get the ability cart name
+        let ability_cart_name = ability_cart_row.querySelector(".ability_cart_name");
+        //Get the ability cart grade
+        let ability_cart_grade = ability_cart_row.querySelector(".ability_cart_grade");
+        //Get the ability cart cost
+        let ability_cart_cost = ability_cart_row.querySelector(".ability_cart_cost");
+        //Get the ability name
+        let abilityName = ability_cart_name.textContent;
+        //Get the grade of the ability
+        let grade = ability_cart_grade.textContent;
+        //Get the cost of the ability
+        let costText = ability_cart_cost.textContent;
+        //Get the cost of the ability
+        let item_cost = parseInt(costText.replace("Cost: ", ""));
+        //Remove the ability from the ability cart
+        item_wrapper.remove();
+        abilityCart = abilityCart.filter(item => item.name !== abilityName);
+        //Subtract the cost of the ability from the ability cost
+        total_cost -= item_cost;
+        //Update the ability cart text
+        document.getElementById("ability_cart_cost").textContent = total_cost;
+        //Recalculate stats from scratch after removal
+        getStats();
+
+        // Hide the ability cart if it is empty
+        if (document.getElementById("ability_cart_list").children.length === 0) {
+            document.getElementById("ability_cart").style.display = "none";
+        }
+    }
+});
+
+//Close message button
+document.getElementById("close_message").addEventListener('click', function () {
+    document.getElementById("message").style.display = "none";
+});
+
+//Slim cart button
+document.getElementById("collapse_cart").addEventListener('click', function () {
+    toggleSlimCart();
+});
