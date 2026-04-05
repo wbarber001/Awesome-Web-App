@@ -109,11 +109,91 @@ function phase_tracker() {
         makeAbilityCards();
     }
     //End of ability phase
-    if (ability_phase == false) {
-        //Hide attributes, attribute_scores, and health
-        health.style.display = "none";
+    if (character_phase == true) {
+        //Clear ability_wrapper
+        document.getElementById("ability_wrapper").innerHTML = "";
+        //Hide budget_header
+        const budget_head = document.getElementById("budget_head");
+        budget_head.style.display = "none";
+        //Hide budget_text
+        budget_text.style.display = "none";
+        //Hide ability_menu_nav
         ability_menu_nav.style.display = "none";
-        abilities.style.display = "none";
+        //Hide ability_cart
+        ability_cart.style.display = "none";
+        //Hide attribute buttons
+        attribute_buttons.style.display = "none";
+        //Reveal name_input
+        name_input.style.display = "flex";
+        //Get the name
+        let name = document.getElementById("character_name").value;
+        if (name.length == 0) {
+            name = "Enter Name";
+        }
+        //Add an event listerner to name_input
+        name_input.addEventListener("change", function () {
+            name = document.getElementById("character_name").value;
+            //Get the attributes
+            const attributes = {
+                intelligence: intScore.textContent,
+                will: willScore.textContent,
+                physical: phyScore.textContent
+            }
+            //Get the stats (read after getStats() updates the DOM)
+            const stats = {
+                ref: refScore.textContent,
+                spr: sprScore.textContent,
+                wits: witsScore.textContent,
+                action: actionScore.textContent
+            }
+            //Get the ability cart
+            const characterAbilities = abilityCart;
+            //New Character
+            const newCharacter = new Character(name, current_budget, attributes, stats, characterAbilities);
+            //Log the new character
+            console.log(newCharacter);
+            //Show abilityCart in ability_wrapper
+            const abilityWrapperEl = document.getElementById("ability_wrapper");
+            abilityWrapperEl.innerHTML = "";
+            abilityCart.forEach(function (ability) {
+                const abilityCard = document.createElement("div");
+                abilityCard.classList.add("item_wrapper");
+
+                const abilityRow = document.createElement("div");
+                abilityRow.classList.add("row");
+
+                const abilityName = document.createElement("div");
+                abilityName.classList.add("item_name");
+                abilityName.textContent = ability.name;
+
+                const abilityGrade = document.createElement("div");
+                abilityGrade.classList.add("item_grade");
+                abilityGrade.textContent = "Grade: " + ability.grade;
+
+                const abilityPool = document.createElement("div");
+                abilityPool.classList.add("ability_cart_pool");
+                abilityPool.textContent = "Pool: " + ability.pool;
+
+                abilityRow.appendChild(abilityName);
+                abilityRow.appendChild(abilityGrade);
+                abilityRow.appendChild(abilityPool);
+                abilityCard.appendChild(abilityRow);
+
+                if (ability.tags && ability.tags.length > 0) {
+                    const tagsContainer = document.createElement("div");
+                    tagsContainer.classList.add("tags");
+                    ability.tags.forEach(tag => {
+                        const tagSpan = document.createElement("div");
+                        tagSpan.classList.add("tag");
+                        tagSpan.textContent = tag.name;
+                        tagsContainer.appendChild(tagSpan);
+                    });
+                    abilityCard.appendChild(tagsContainer);
+                }
+
+                abilityWrapperEl.appendChild(abilityCard);
+            });
+        });
     }
     //Disable cancel buttons during attribute phase until scoreCount >= 3
     document.querySelectorAll(".cancel_button").forEach(function (button) {
@@ -239,8 +319,6 @@ function getStats() {
         });
     }
 }
-
-
 
 //This function generates a menu to navigate Abilities and Tags
 function makeAbilityMenu() {
@@ -530,8 +608,27 @@ function makeTagCards(tagName, targetTable) {
                         let newCost = oldCost * 2;
                         if (total_cost - oldCost + newCost > current_budget) {
                             //Show the message panel
-                            message.style.display = "flex";
+                            toggleMessage();
                             return;
+                        }
+                        //The first tag should not double the cost of a specific group of abilities
+                        if (damageAbilities.includes(ability.name)) {
+                            console.log(ability.name);
+                            //If the number of the ability's tags that are damage tags is zero and the tag is a damage tag, do not double the cost
+                            if (ability.tags.filter(tag => damageTags.includes(tag)).length === 0 && damageTags.includes(tagName)) {
+                                newCost = oldCost;
+                            }
+                        }
+                        if (ability.name === "IMPERVIOUS") {
+                            // Map each grade to its max allowed tags
+                            const imperviousTagLimits = { D: 1, C: 2, B: 3, A: 4, S: 5 };
+                            const tagLimit = imperviousTagLimits[ability.grade] ?? 0;
+                            // Block adding if already at the limit
+                            if (ability.tags.length >= tagLimit) return;
+                            // All tags within the grade's allowance are free (no cost doubling)
+                            if (ability.tags.length < tagLimit) {
+                                newCost = oldCost;
+                            }
                         }
                         //Add the tag to the ability item in abilityCart
                         ability.tags.push(tagName);
@@ -541,17 +638,17 @@ function makeTagCards(tagName, targetTable) {
                         total_cost -= oldCost;
                         total_cost += newCost;
                         //Update the global cart cost display
-                        document.getElementById("ability_cart_cost").textContent = total_cost;
+                        cart_total.textContent = total_cost;
                         //Find the matching item_wrapper by ability name, then target its .tags div
                         let cartItems = document.querySelectorAll(".item_wrapper");
                         //Loop through cartItems
                         cartItems.forEach(function (item) {
                             //Get the ability cart name
-                            let nameEl = item.querySelector(".ability_cart_name");
+                            let nameEl = item.querySelector(".item_name");
                             //If the ability cart name is equal to the ability name
                             if (nameEl && nameEl.textContent === abilityName) {
                                 //Update the cost label in the cart row
-                                let costEl = item.querySelector(".ability_cart_cost");
+                                let costEl = item.querySelector(".ability_cost");
                                 if (costEl) costEl.textContent = "Cost: " + newCost;
                                 //Get the tags div
                                 let tagsDiv = item.querySelector(".tags");
@@ -585,24 +682,32 @@ function makeTagCards(tagName, targetTable) {
                         if (!ability.tags.includes(tagName)) return;
                         //Remove the tag from the ability item in abilityCart
                         ability.tags = ability.tags.filter(tag => tag !== tagName);
-                        //Halve the ability's cost
                         let oldCost = parseInt(ability.cost);
                         let newCost = Math.floor(oldCost / 2);
+                        //iterate through abilityTier for the matching tier and grade, if newCost is less than the cost in abilityTier, set newCost to the cost in abilityTier
+                        abilityTier.forEach(function (tier) {
+                            if (tier.tier === ability.tier && tier.grade === ability.grade) {
+                                if (newCost < tier.cost) {
+                                    newCost = tier.cost;
+                                }
+                            }
+                        });
+                        //Update the ability's cost
                         ability.cost = newCost;
                         //Update total_cost by subtracting only the difference
                         total_cost = total_cost - oldCost + newCost;
                         //Update the global cart cost display
-                        document.getElementById("ability_cart_cost").textContent = total_cost;
+                        cart_total.textContent = total_cost;
                         //Find the matching item_wrapper by ability name, then target its .tags div
                         let cartItems = document.querySelectorAll(".item_wrapper");
                         //Loop through cartItems
                         cartItems.forEach(function (item) {
                             //Get the ability cart name
-                            let nameEl = item.querySelector(".ability_cart_name");
+                            let nameEl = item.querySelector(".item_name");
                             //If the ability cart name is equal to the ability name
                             if (nameEl && nameEl.textContent === abilityName) {
                                 //Update the cost label in the cart row
-                                let costEl = item.querySelector(".ability_cart_cost");
+                                let costEl = item.querySelector(".ability_cost");
                                 if (costEl) costEl.textContent = "Cost: " + ability.cost;
                                 //Get the tags div
                                 let tagsDiv = item.querySelector(".tags");
@@ -743,12 +848,29 @@ function toggleSlimCart() {
     }
 }
 
+function toggleMessage() {
+    const DURATION = 500;
+    if (message.style.display == "none") {
+        //Fade in message
+        message.style.transition = "opacity " + DURATION + "ms ease-in-out";
+        message.style.opacity = "0";
+        message.style.display = "flex";
+        setTimeout(() => message.style.opacity = "1", 10);
+    } else {
+        //Fade out message
+        message.style.transition = "opacity " + DURATION + "ms ease-in-out";
+        message.style.opacity = "0";
+        setTimeout(() => message.style.display = "none", DURATION);
+    }
+}
+
 //Ability constructor
-function Ability(name, grade, cost, tags) {
+function Ability(name, grade, cost, tags, tier) {
     this.name = name;
     this.grade = grade;
     this.cost = cost;
     this.tags = tags;
+    this.tier = tier;
 }
 
 //Character constructor
@@ -759,14 +881,19 @@ function Character(name, budget, attributes, stats, abilities) {
     this.stats = stats;
     this.abilities = abilities;
 }
+
 /*VARIABLES */
 
 //Phase Trackers
 let budget_phase = false;
 let attribute_phase = false;
 let ability_phase = false;
+let character_phase = false;
 
 //Elements revealed during phases
+const name_input = document.getElementById("name_input");
+name_input.style.display = "none";
+
 const budget_buttons = document.getElementById("budget_buttons");
 budget_buttons.style.display = "none";
 
@@ -812,6 +939,8 @@ const ability_cart = document.getElementById("ability_cart");
 ability_cart.style.display = "none";
 
 const ability_cart_list = document.getElementById("ability_cart_list");
+
+const cart_total = document.getElementById("cart_total");
 
 const slim_cart = document.getElementById("slim_cart");
 slim_cart.style.display = "none";
@@ -946,28 +1075,30 @@ confirm.forEach(function (button) {
         }
         //If ability_phase is true and ability_cart_list is not empty do the following
         if (ability_phase == true && ability_cart_list.children.length > 0) {
-            //Get the name
-            const name = "Enter Name";
-            //Get the attributes
-            const attributes = {
-                intelligence: intScore.textContent,
-                will: willScore.textContent,
-                physical: phyScore.textContent
+            //Iterate through the ability cart, if there are damageAbilities, ensure they each have at least 1 damage tag
+            let needDamageTag = [];
+            abilityCart.forEach(function (ability) {
+                //Check if this cart ability is a damage ability or IMPERVIOUS (damageAbilities is an array of strings)
+                if (damageAbilities.includes(ability.name) || ability.name === "IMPERVIOUS") {
+                    //Check if the ability has at least one damage tag (damageTags is an array of strings)
+                    const hasDamageTag = ability.tags.some(function (tag) {
+                        return damageTags.includes(tag);
+                    });
+                    if (!hasDamageTag) {
+                        needDamageTag.push(ability.name);
+                    }
+                }
+            });
+            //If any abilities are missing a damage tag, show the message and block phase transition
+            if (needDamageTag.length > 0) {
+                const message_text = document.getElementById("message_text");
+                message_text.textContent = "You must add at least one damage tag to the following abilities: " + needDamageTag.join(", ");
+                toggleMessage();
+                return;
             }
-            //Get the stats (read after getStats() updates the DOM)
-            const stats = {
-                ref: refScore.textContent,
-                spr: sprScore.textContent,
-                wits: witsScore.textContent,
-                action: actionScore.textContent
-            }
-
-            //Get the ability cart
-            const characterAbilities = abilityCart;
-            //New Character
-            const newCharacter = new Character(name, current_budget, attributes, stats, characterAbilities);
-            //Log the new character
-            console.log(newCharacter);
+            character_phase = true;
+            ability_phase = false;
+            phase_tracker();
         }
     });
 });
@@ -1073,14 +1204,18 @@ document.getElementById("ability_menu").addEventListener('click', function (e) {
     if (e.target && e.target.classList.contains("menuCell")) {
         let menuName = e.target.textContent.toUpperCase();
         console.log("Scrolling to:", menuName);
-
         // Find the ability card with the matching title
         let cards = document.querySelectorAll(".ability_card");
         cards.forEach(function (card) {
+            //Get the title of the card
             let title = card.querySelector("h3");
+            //If the title matches the menu name
             if (title && title.textContent.toUpperCase() === menuName) {
+                //Get the height of the sticky top
                 const stickyTopHeight = document.getElementById("sticky_top").offsetHeight;
+                //Calculate the top position of the card
                 const topPosition = card.getBoundingClientRect().top + window.scrollY - stickyTopHeight;
+                //Scroll to the card
                 window.scrollTo({ top: topPosition, behavior: "smooth" });
             }
         });
@@ -1098,10 +1233,9 @@ document.getElementById("ability_wrapper").addEventListener('click', function (e
         if (cells.length === 3) {
             let abilityCard = col.closest(".ability_card");
             let abilityName = abilityCard ? abilityCard.querySelector("h3").textContent : "";
-
+            //Get the grade and cost
             let grade = cells[0].textContent;
             let cost = cells[2].textContent;
-
             // Check if the actual cost cell (the 3rd cell) was the one clicked
             if (e.target === cells[2]) {
                 // Ensure we don't log the table header column itself
@@ -1109,45 +1243,52 @@ document.getElementById("ability_wrapper").addEventListener('click', function (e
                     //If total_cost is greater than current_budget
                     if (total_cost + parseInt(cost) > current_budget) {
                         //Display an error message
-                        message.style.display = "flex";
+                        toggleMessage();
                         return;
                     }
                     console.log("Ability:", abilityName, "Grade:", grade, "Cost:", cost);
                     //Reveal the ability cart
                     ability_cart.style.display = "flex";
-                    //Add the ability to the ability cart
-                    // ability_cart_list is declared globally above
+                    //Create the ability cart row
                     const item_wrapper = document.createElement("div");
                     item_wrapper.classList.add("item_wrapper");
-                    const ability_cart_row = document.createElement("div");
-                    ability_cart_row.classList.add("row");
-                    const ability_cart_name = document.createElement("div");
-                    ability_cart_name.classList.add("ability_cart_name");
-                    ability_cart_name.textContent = abilityName;
-                    const ability_cart_grade = document.createElement("div");
-                    ability_cart_grade.classList.add("ability_cart_grade");
-                    ability_cart_grade.textContent = "Grade: " + grade;
-                    const ability_cart_cost = document.createElement("div");
-                    ability_cart_cost.classList.add("ability_cart_cost");
-                    ability_cart_cost.textContent = "Cost: " + cost;
+                    const item_row = document.createElement("div");
+                    item_row.classList.add("row");
+                    const item_name = document.createElement("div");
+                    item_name.classList.add("item_name");
+                    item_name.textContent = abilityName;
+                    const item_grade = document.createElement("div");
+                    item_grade.classList.add("item_grade");
+                    item_grade.textContent = "Grade: " + grade;
+                    const ability_cost = document.createElement("div");
+                    ability_cost.classList.add("ability_cost");
+                    ability_cost.textContent = "Cost: " + cost;
                     const remove = document.createElement("div");
                     remove.textContent = "remove";
                     remove.classList.add("remove");
                     const tags = document.createElement("div");
                     tags.classList.add("tags");
-                    ability_cart_row.appendChild(ability_cart_name);
-                    ability_cart_row.appendChild(ability_cart_grade);
-                    ability_cart_row.appendChild(ability_cart_cost);
-                    ability_cart_row.appendChild(remove);
-                    item_wrapper.appendChild(ability_cart_row);
+                    //Add the ability cart row to the ability cart
+                    item_row.appendChild(item_name);
+                    item_row.appendChild(item_grade);
+                    item_row.appendChild(ability_cost);
+                    item_row.appendChild(remove);
+                    item_wrapper.appendChild(item_row);
                     item_wrapper.appendChild(tags);
                     ability_cart_list.appendChild(item_wrapper);
+                    //Get the tier of the ability
+                    let tier = 1;
+                    abilityList.forEach(function (ability) {
+                        if (ability.name === abilityName) {
+                            tier = ability.tier;
+                        }
+                    });
                     //Add the ability to the ability cart array
-                    abilityCart.push(new Ability(abilityName, grade, cost, []));
+                    abilityCart.push(new Ability(abilityName, grade, cost, [], tier));
                     //Collect the cost of the ability as a number
                     total_cost += parseInt(cost);
                     //Update the ability cart text
-                    document.getElementById("ability_cart_cost").textContent = total_cost;
+                    cart_total.textContent = total_cost;
                     console.log("Current Ability Cost: " + total_cost);
                     //Apply ability upgrades to stats
                     getStats();
@@ -1178,19 +1319,19 @@ document.getElementById("ability_cart_list").addEventListener('click', function 
         //Get the item wrapper
         let item_wrapper = e.target.closest(".item_wrapper");
         //Get the ability cart row
-        let ability_cart_row = item_wrapper.querySelector(".row");
+        let item_row = item_wrapper.querySelector(".row");
         //Get the ability cart name
-        let ability_cart_name = ability_cart_row.querySelector(".ability_cart_name");
+        let item_name = item_row.querySelector(".item_name");
         //Get the ability cart grade
-        let ability_cart_grade = ability_cart_row.querySelector(".ability_cart_grade");
+        let item_grade = item_row.querySelector(".item_grade");
         //Get the ability cart cost
-        let ability_cart_cost = ability_cart_row.querySelector(".ability_cart_cost");
+        let ability_cost = item_row.querySelector(".ability_cost");
         //Get the ability name
-        let abilityName = ability_cart_name.textContent;
+        let abilityName = item_name.textContent;
         //Get the grade of the ability
-        let grade = ability_cart_grade.textContent;
+        let grade = item_grade.textContent;
         //Get the cost of the ability
-        let costText = ability_cart_cost.textContent;
+        let costText = ability_cost.textContent;
         //Get the cost of the ability
         let item_cost = parseInt(costText.replace("Cost: ", ""));
         //Remove the ability from the ability cart
@@ -1199,7 +1340,7 @@ document.getElementById("ability_cart_list").addEventListener('click', function 
         //Subtract the cost of the ability from the ability cost
         total_cost -= item_cost;
         //Update the ability cart text
-        document.getElementById("ability_cart_cost").textContent = total_cost;
+        cart_total.textContent = total_cost;
         //Recalculate stats from scratch after removal
         getStats();
 
@@ -1212,7 +1353,7 @@ document.getElementById("ability_cart_list").addEventListener('click', function 
 
 //Close message button
 document.getElementById("close_message").addEventListener('click', function () {
-    document.getElementById("message").style.display = "none";
+    toggleMessage();
 });
 
 //Slim cart button

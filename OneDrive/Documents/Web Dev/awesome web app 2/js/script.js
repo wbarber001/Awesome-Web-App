@@ -115,7 +115,7 @@ const abilityList = [
     {
         name: "AURA",
         power: true,
-        description: "You possess an aura that changes the conditions of the area you occupy.<br>&ensp;Choose what your Aura imposes, be it zero gravity, icy surfaces, an earthquake, psychic waves, torrential rain, etc. Add Aura to a Will stunt vs a difficulty set by the Narrator. The outcome determines the duration of the Aura. For others the Aura pool adds to the difficulty of all stunts performed within. The higher the grade the more extreme the changes to the space of influence.<br>&ensp;Epicenter: The Aura is always centered around the bearer making it harder to do them harm. Subtract the Aura pool from the outcome of physical stunts made against your Reflex. The pool is the number of times Epicenter can be used during an encounter.<br>&ensp;Only one instance of this ability can be in play at a time.",
+        description: "You possess an aura that changes the conditions of the area you occupy.<br>&ensp;Choose what your Aura imposes, be it zero gravity, icy surfaces, an earthquake, psychic waves, torrential rain, etc. <br>&ensp;Add Aura to a Will stunt vs a difficulty set by the Narrator. The outcome determines the duration of the Aura. For others the Aura pool adds to the difficulty of all stunts performed within. The higher the grade the more extreme the changes to the space of influence.<br>&ensp;Epicenter: The Aura is always centered around the bearer making it harder to do them harm. Subtract the Aura pool from the outcome of physical stunts made against your Reflex. The pool is the number of times Epicenter can be used during an encounter.<br>&ensp;Only one instance of this ability can be in play at a time.",
         outcome: outcomeScore,
         tier: 3,
         upgrades: [
@@ -273,7 +273,7 @@ const abilityList = [
     {
         name: "DRIVE",
         power: false,
-        description: "Drive represents extraordinary willpower.<br>&ensp;Add the Drive pool to Will stunts that test will power, psychic power or magic skill.<br>&ensp;Focus: You can concentrate your will upon accomplishing a single task.<br>&ensp;For every turn you pass, performing no stunt, you can reduce the difficulty or defense youâ€™re rolling against by 1. This amount cannot exceed your drive grade.<br>&ensp;Losing enough health to reduce you to serious before performing the stunt cancels focus.",
+        description: "Drive represents extraordinary willpower.<br>&ensp;Add the Drive pool to Will stunts that test will power, psychic power or magic skill.<br>&ensp;Focus: You can concentrate your will upon accomplishing a single task.<br>&ensp;For every turn you pass, performing no stunt, you can reduce the difficulty or defense you're rolling against by 1. This amount cannot exceed your drive grade.<br>&ensp;Losing enough health to reduce you to serious before performing the stunt cancels focus.",
         outcome: "",
         tier: 2,
         upgrades: [
@@ -497,7 +497,7 @@ const abilityList = [
     {
         name: "IMPERVIOUS",
         power: false,
-        description: "You are impervious to a specific type of damage.<br>&ensp;You can ignore the outcome of a specific damage type.<br>&ensp;Choose a damage type for each grade of Imperviousâ€¦",
+        description: "You are impervious to a specific type of damage.<br>&ensp;You can ignore the outcome of damage types covered by your impervious ability.<br>&ensp;Choose one damage type for each grade of Impervious.",
         outcome: "",
         tier: 3,
         upgrades: [],
@@ -934,7 +934,7 @@ const tagList = [
     {
         name: "COLD DAMAGE",
         description: "Add a damage type to an attack ability.<br>&ensp;Can also be added to Aura, Bind and Steal.",
-        addTo: ["Melee Attack", "Ranged Attack"],
+        addTo: ["Field", "Impervious", "Melee Attack", "Ranged Attack", "Resistant"],
         abbreviation: "(Col)",
     },
     {
@@ -976,7 +976,7 @@ const tagList = [
     {
         name: "ENERGY DAMAGE",
         description: "Add a damage type to an attack ability.<br>&ensp;Can also be added to Aura, Bind and Steal.",
-        addTo: ["Melee Attack", "Ranged Attack"],
+        addTo: ["Field", "Impervious", "Melee Attack", "Ranged Attack", "Resistant"],
         abbreviation: "(Ene)",
     },
     {
@@ -1000,7 +1000,7 @@ const tagList = [
     {
         name: "HEAT DAMAGE",
         description: "Add a damage type to an attack ability.<br>&ensp;Can also be added to Aura, Bind and Steal.",
-        addTo: ["Melee Attack", "Ranged Attack"],
+        addTo: ["Field", "Impervious", "Melee Attack", "Ranged Attack", "Resistant"],
         abbreviation: "(Hea)",
     },
     {
@@ -1024,7 +1024,7 @@ const tagList = [
     {
         name: "MYSTIC DAMAGE",
         description: "Add a damage type to an attack ability.<br>&ensp;Can also be added to Aura, Bind and Steal.",
-        addTo: ["Melee Attack", "Ranged Attack"],
+        addTo: ["Field", "Impervious", "Melee Attack", "Ranged Attack", "Resistant"],
         abbreviation: "(Mys)",
     },
     {
@@ -1042,7 +1042,7 @@ const tagList = [
     {
         name: "PHYSICAL DAMAGE",
         description: "Add a damage type to an attack ability.<br>&ensp;Can also be added to Aura, Bind and Steal.",
-        addTo: ["Melee Attack", "Ranged Attack"],
+        addTo: ["Field", "Impervious", "Melee Attack", "Ranged Attack", "Resistant"],
         abbreviation: "(Phy)",
     },
     {
@@ -1054,7 +1054,7 @@ const tagList = [
     {
         name: "PSYCHIC DAMAGE",
         description: "Add a damage type to an attack ability.<br>&ensp;Can also be added to Aura, Bind and Steal.",
-        addTo: ["Melee Attack", "Ranged Attack"],
+        addTo: ["Field", "Impervious", "Melee Attack", "Ranged Attack", "Resistant"],
         abbreviation: "(Psy)",
     },
     {
@@ -1078,7 +1078,7 @@ const tagList = [
     {
         name: "RADIATION DAMAGE",
         description: "Add a damage type to an attack ability.<br>&ensp;Can also be added to Aura, Bind and Steal.",
-        addTo: ["Melee Attack", "Ranged Attack"],
+        addTo: ["Field", "Impervious", "Melee Attack", "Ranged Attack", "Resistant"],
         abbreviation: "(Rad)",
     },
     {
@@ -1108,7 +1108,7 @@ const tagList = [
     {
         name: "SUFFOCATION DAMAGE",
         description: "Add a damage type to an attack ability.<br>&ensp;Can also be added to Aura, Bind and Steal.",
-        addTo: ["Melee Attack", "Ranged Attack"],
+        addTo: ["Field", "Impervious", "Melee Attack", "Ranged Attack", "Resistant"],
         abbreviation: "(Suf)",
     },
     {
@@ -1132,7 +1132,7 @@ const tagList = [
     {
         name: "TOXIN DAMAGE",
         description: "Add a damage type to an attack ability.<br>&ensp;Can also be added to Aura, Bind and Steal.",
-        addTo: ["Melee Attack", "Ranged Attack"],
+        addTo: ["Field", "Impervious", "Melee Attack", "Ranged Attack", "Resistant"],
         abbreviation: "(Tox)",
     },
     {
@@ -1147,4 +1147,12 @@ const tagList = [
         addTo: ["Perception"],
         abbreviation: "(Xra)",
     },
+];
+
+const damageAbilities = [
+    "FIELD", "MELEE ATTACK", "RANGED ATTACK", "RESISTANT"
+];
+
+const damageTags = [
+    "COLD DAMAGE", "ENERGY DAMAGE", "HEAT DAMAGE", "MYSTIC DAMAGE", "PHYSICAL DAMAGE", "PSYCHIC DAMAGE", "RADIATION DAMAGE", "SUFFOCATION DAMAGE", "TOXIN DAMAGE"
 ];
